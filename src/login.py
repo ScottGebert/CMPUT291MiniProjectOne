@@ -1,8 +1,10 @@
 import getpass
 import dbFunctions
+import userMenu
 
 # Functionality for starting the login process
-def startLogin(): 
+# Maybe did this kinda dumb could use a while loop instead of recursion
+def startLogin():
     userOrArtistString = input("Type U for User A for Artist: ").lower()
     if (userOrArtistString == "u"):
         registerOrLogin()
@@ -15,6 +17,7 @@ def startLogin():
     return
 
 # Functionality for determing between loging in a user and registering a user
+# Maybe did this kinda dumb could use a while loop instead of recursion
 def registerOrLogin():
     resgisterOrLogin = input("are you a returnig user Y/N: ").lower()
     if (resgisterOrLogin == "y"):
@@ -27,19 +30,21 @@ def registerOrLogin():
 
 # Handles the login for existing users and artists (note that type should match the table name)
 def login(type):
+    print("Login Page")
     id = getId()
-    password = input("Passweod: ") #TODO: Replace with getPassword()
+    password = input("Password: ") #TODO: Replace with getPassword()
 
     if(dbFunctions.attemptLogin(type, id, password) != None):
         # Rediect to correct menu based on type
         print("Logged In")
+        if (type == "users"):
+            userMenu.startMenu(id, password)
     else:
         # Retry login
         print("Invalid login - try again")
         login(type)
 
     return
-
 
 # returns the id of the user/artist and type of user (artist or user)
 def getLoginInfo():
@@ -71,6 +76,7 @@ def getPassword():
         return password
 
 def registerUser():
+    print("New User Registration")
     id = getId()
     while dbFunctions.checkUserId(id):
         print('That user id is already taken. Please enter a new one')
@@ -80,10 +86,8 @@ def registerUser():
     password = input('Password: ')
 
     dbFunctions.registerUser(id, name, password)
-    print("Logged In")
-    # Redirect to menu
-
-def checkIfUserExists(id):
-    return False
+    userMenu.startMenu(id, name)
+    
+    return 
 
     

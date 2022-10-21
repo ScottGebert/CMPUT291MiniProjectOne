@@ -23,14 +23,12 @@ def attemptLogin(tableName, id, pwd):
 
     cursor.execute(f"""SELECT Name FROM {tableName} WHERE {idFormat}='{id}' AND pwd='{pwd}'""")
     row = cursor.fetchone()
-    print(row)
-    
+
     return row
 
 def checkUserId(id):
     cursor.execute(f"""SELECT * FROM users WHERE uid='{id}'""")
     row = cursor.fetchone()
-    print(False if row == None else True)
 
     return (False if row == None else True)
 

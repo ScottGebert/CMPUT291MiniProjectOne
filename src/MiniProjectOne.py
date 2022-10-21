@@ -16,7 +16,6 @@ def main():
     # id, userType = login.getLoginInfo()
 
 
-
     dbFunctions.connection.commit()
     dbFunctions.connection.close()
     return
