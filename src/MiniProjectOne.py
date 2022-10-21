@@ -11,9 +11,9 @@ def main():
     # Initalizes Connection to the DB - use dbFunctions.Cursor for executing queries  
     dbFunctions.connect(path)
 
-    id, userType = login.getLoginInfo()
-    
-    testQuery.run(dbFunctions.cursor, dbFunctions.connection)
+    login.startLogin()
+
+    # id, userType = login.getLoginInfo()
 
 
 

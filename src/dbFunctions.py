@@ -13,6 +13,21 @@ def connect(path):
     connection.commit()
     return cursor
 
+# Returns the user/artists name if login is sucsessful otherwise returns None
+def attemptLogin(tableName, id, pwd):
+    idFormat = " "
+    if (tableName == "users"):
+        idFormat = "uid"
+    else:
+        idFormat = "aid" 
+
+    cursor.execute(f"""SELECT Name FROM {tableName} WHERE {idFormat}='{id}' AND pwd='{pwd}'""")
+    row = cursor.fetchone()
+    print(row)
+    
+    return row
+
+
 
 
 def createTables():
