@@ -4,13 +4,37 @@ import time
 connection = None
 cursor = None
 
+
 def connect(path):
     global connection, cursor
-
     connection = sqlite3.connect(path)
     cursor = connection.cursor()
     cursor.execute(' PRAGMA foreign_keys=ON; ')
     connection.commit()
+    return cursor
+
+# Returns the user/artists name if login is sucsessful otherwise returns None
+def attemptLogin(tableName, id, pwd):
+    idFormat = " "
+    if (tableName == "users"):
+        idFormat = "uid"
+    else:
+        idFormat = "aid" 
+
+    cursor.execute(f"""SELECT Name FROM {tableName} WHERE {idFormat}='{id}' AND pwd='{pwd}'""")
+    row = cursor.fetchone()
+
+    return row
+
+def checkUserId(id):
+    cursor.execute(f"""SELECT * FROM users WHERE uid='{id}'""")
+    row = cursor.fetchone()
+
+    return (False if row == None else True)
+
+def registerUser(id, name, password):
+    cursor.execute(f"""INSERT into users VALUES ("{id}", "{name}", "{password}");""")
+
     return
 
 
