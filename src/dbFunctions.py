@@ -22,7 +22,7 @@ def attemptLoginBothTables(id, pwd):
         userType = "user"
     elif (loginArtist(id, pwd)):
         userType = "artist"
-    
+
     return userType
 
 
@@ -31,9 +31,9 @@ def idInBoth(id):
     cursor.execute(f"""SELECT uid as id FROM users WHERE uid='{id}'
                         UNION ALL
                         SELECT aid as id FROM artists WHERE aid='{id}';""")
-    
+
     rows = cursor.fetchall()
-    return True if len(rows) > 1 else False 
+    return True if len(rows) > 1 else False
 
 
 # Returns True if login is sucsessful
@@ -45,7 +45,8 @@ def loginUser(id, pwd):
 
 # Returns True if login is sucsessful
 def loginArtist(id, pwd):
-    cursor.execute(f"""SELECT * FROM artists WHERE aid='{id}' and pwd='{pwd}'""")
+    cursor.execute(
+        f"""SELECT * FROM artists WHERE aid='{id}' and pwd='{pwd}'""")
     row = cursor.fetchone()
     return (False if row == None else True)
 
@@ -58,7 +59,8 @@ def checkUserId(id):
 
 
 def registerUser(id, name, password):
-    cursor.execute(f"""INSERT into users VALUES ("{id}", "{name}", "{password}");""")
+    cursor.execute(
+        f"""INSERT into users VALUES ("{id}", "{name}", "{password}");""")
     return
 
 
