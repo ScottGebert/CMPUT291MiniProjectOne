@@ -1,6 +1,7 @@
 import getpass
 import dbFunctions
 import userMenu
+import artistMenu
 
 # Functionality for starting the login process
 # Maybe did this kinda dumb could use a while loop instead of recursion
@@ -33,12 +34,14 @@ def login(type):
     print("Login Page")
     id = getId()
     password = input("Password: ") #TODO: Replace with getPassword()
-
-    if(dbFunctions.attemptLogin(type, id, password) != None):
+    name = dbFunctions.attemptLogin(type, id, password)
+    if(name != None):
         # Rediect to correct menu based on type
         print("Logged In")
         if (type == "users"):
-            userMenu.startMenu(id, password)
+            userMenu.startMenu(id, name)
+        else:
+            artistMenu.startMenu(id, name)
     else:
         # Retry login
         print("Invalid login - try again")
