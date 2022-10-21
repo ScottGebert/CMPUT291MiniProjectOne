@@ -4,55 +4,43 @@ import userMenu
 import artistMenu
 
 # Functionality for starting the login process
-# Maybe did this kinda dumb could use a while loop instead of recursion
-def startLogin():
-    userOrArtistString = input("Type U for User A for Artist: ").lower()
-    if (userOrArtistString == "u"):
-        registerOrLogin()
-    elif (userOrArtistString == "a"):
-        login("artists")
-    else:
-        print("Invalid Input - valid input is U/A \n")
-        startLogin()
-
-    return
-
-# Functionality for determing between loging in a user and registering a user
-# Maybe did this kinda dumb could use a while loop instead of recursion
-def registerOrLogin():
-    resgisterOrLogin = input("are you a returnig user Y/N: ").lower()
-    if (resgisterOrLogin == "y"):
-        login("users")
-    elif (resgisterOrLogin == "n"):
-        registerUser()
-    else:
-        print("Invalid Input - valid input is Y/N \n")
-        registerOrLogin()
-
-# Handles the login for existing users and artists (note that type should match the table name)
-def login(type):
-    print("Login Page")
-    id = getId()
-    password = input("Password: ") #TODO: Replace with getPassword()
-    name = dbFunctions.attemptLogin(type, id, password)
-    if(name != None):
-        # Rediect to correct menu based on type
-        print("Logged In")
-        if (type == "users"):
-            userMenu.startMenu(id, name)
-        else:
-            artistMenu.startMenu(id, name)
-    else:
-        # Retry login
-        print("Invalid login - try again")
-        login(type)
-
-    return
-
 # returns the id of the user/artist and type of user (artist or user)
 def getLoginInfo():
-    userType = ''
-    return id, userType
+    while True:
+        id = getId()
+        password = input("Password: ") # getPassword() returns err currently
+
+        if (dbFunctions.idInBoth(id)):
+            userOrArtist = ""
+            while True:
+                userOrArtist = input("ID was found in both tables are you logging in as a User or Artist U/A: ")
+                if (userOrArtist == "u"):
+                    if (dbFunctions.loginUser(id,password)):
+                        return "user", id
+                    else:
+                        print("Login Failed")
+                        break
+                elif (userOrArtist == "a"):
+                    if (dbFunctions.loginArtist(id,password)):
+                        return "artist", id
+                    else:
+                        print("Login Failed")
+                        break
+        else:
+            result = dbFunctions.attemptLoginBothTables(id, password)
+            if (result != None):
+                return result, id
+
+            if (result == None):
+                register = None
+                while True:
+                    register = input("Would you like to register as a new user? Y/N: ")   
+                    if (register.lower() == "y"):
+                        uid = registerUser()
+                        return "user", uid
+                    elif (register.lower() == "n"):
+                        break
+        
 
 def displayWelcome():
     title = '''
@@ -89,8 +77,7 @@ def registerUser():
     password = input('Password: ')
 
     dbFunctions.registerUser(id, name, password)
-    userMenu.startMenu(id, name)
     
-    return 
+    return id
 
     

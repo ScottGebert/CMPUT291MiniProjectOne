@@ -2,7 +2,6 @@ import sqlite3
 import time
 import dbFunctions
 import login
-import testQuery
 
 
 path = "miniProject.db"
@@ -10,10 +9,14 @@ path = "miniProject.db"
 def main():
     # Initalizes Connection to the DB - use dbFunctions.Cursor for executing queries  
     dbFunctions.connect(path)
+    
+    # dbFunctions.createTables()
+    # dbFunctions.insert_data()
 
-    login.startLogin()
 
-    # id, userType = login.getLoginInfo()
+    userType, id = login.getLoginInfo()
+
+    print(userType, id)
 
 
     dbFunctions.connection.commit()
