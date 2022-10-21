@@ -27,7 +27,17 @@ def attemptLogin(tableName, id, pwd):
     
     return row
 
+def checkUserId(id):
+    cursor.execute(f"""SELECT * FROM users WHERE uid='{id}'""")
+    row = cursor.fetchone()
+    print(False if row == None else True)
 
+    return (False if row == None else True)
+
+def registerUser(id, name, password):
+    cursor.execute(f"""INSERT into users VALUES ("{id}", "{name}", "{password}");""")
+
+    return
 
 
 def createTables():

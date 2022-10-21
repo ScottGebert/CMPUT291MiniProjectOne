@@ -30,16 +30,15 @@ def login(type):
     id = getId()
     password = input("Passweod: ") #TODO: Replace with getPassword()
 
-    if(dbFunctions.attemptLogin(type, id, password) != "None"):
+    if(dbFunctions.attemptLogin(type, id, password) != None):
         # Rediect to correct menu based on type
         print("Logged In")
     else:
         # Retry login
-        print("Invalid login - try againn")
+        print("Invalid login - try again")
         login(type)
 
     return
-
 
 
 # returns the id of the user/artist and type of user (artist or user)
@@ -73,12 +72,16 @@ def getPassword():
 
 def registerUser():
     id = getId()
-    while checkIfUserExists(id):
+    while dbFunctions.checkUserId(id):
         print('That user id is already taken. Please enter a new one')
         id = getId()
     
     name = input('Name: ')
     password = input('Password: ')
+
+    dbFunctions.registerUser(id, name, password)
+    print("Logged In")
+    # Redirect to menu
 
 def checkIfUserExists(id):
     return False
