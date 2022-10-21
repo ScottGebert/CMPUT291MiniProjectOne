@@ -65,6 +65,27 @@ def registerUser(id, name, password):
 
 
 ### ARTIST FUNCTIONS ###
+def addSong(aid, songName, songDuration):
+    sid = getNextUnusedId('songs', 'sid')
+    print(f"""INSERT into songs VALUES ({sid}, "{songName}", {songDuration})""" )
+
+    cursor.execute(
+        f"""INSERT into songs VALUES ({sid}, "{songName}", {songDuration} );""")
+
+    print(f"""INSERT into perform VALUES ("{aid}", {sid});""" )
+    cursor.execute(
+        f"""INSERT into perform VALUES ("{aid}",{sid});""")
+    
+    
+    return
+
+### ALL FUNCTIONS ###
+# Only works if the PK is an int
+def getNextUnusedId(tableName, idColumnName):
+    cursor.execute(
+        f"""SELECT MAX({idColumnName}) + 1 FROM {tableName};""")
+
+    return cursor.fetchone()[0]
 
 
 ### INITAL FUNCTIONS ###

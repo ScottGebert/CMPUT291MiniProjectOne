@@ -2,14 +2,14 @@ import getpass
 import dbFunctions
 import login
 
-uid = None
+aid = None
 
 # Store uid, start the menu
 
 
 def startMenu(userId):
-    global uid
-    uid = userId
+    global aid
+    aid = userId
 
     menu()
     return
@@ -19,8 +19,8 @@ def printMenu():
     print("""
 1 - Add a song
 2 - Find top fans and playlists
-3- Logout
-4- Exit
+3 - Logout
+4 - Exit
 Enter a choice and press enter:""")
 
     return
@@ -33,7 +33,17 @@ def menu():
         userInput = int(input())
         if userInput == 1:
             #TODO: Add song
-            print("SessionStart")
+            while True:
+                songName = input("Song Name: ")
+                songDuration = input("Song Duration: ")
+                if not (songDuration.isdigit()):
+                    print("Song Duration must be a number try again")
+                else:
+                    dbFunctions.addSong(aid, songName, songDuration)
+                    print("Song added")
+                    printMenu()
+                    break
+
         elif userInput == 2:
             #TODO: Find top fans and playlists
             print("Search")
