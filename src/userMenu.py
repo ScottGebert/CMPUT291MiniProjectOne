@@ -5,8 +5,6 @@ import MiniProjectOne
 uid = None
 
 # Store uid start the menu
-
-
 def startMenu(userId):
     global uid
     uid = userId
