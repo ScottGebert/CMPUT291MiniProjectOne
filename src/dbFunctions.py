@@ -61,6 +61,9 @@ def checkUserId(id):
 def registerUser(id, name, password):
     cursor.execute(
         f"""INSERT into users VALUES ("{id}", "{name}", "{password}");""")
+   
+    connection.commit()
+    
     return
 
 
@@ -74,6 +77,7 @@ def addSong(aid, songName, songDuration):
     cursor.execute(
         f"""INSERT into perform VALUES ("{aid}",{sid});""")
     
+    connection.commit()
     
     return
 
