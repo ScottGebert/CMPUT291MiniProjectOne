@@ -68,6 +68,18 @@ def registerUser(id, name, password):
 
 
 ### ARTIST FUNCTIONS ###
+def songExists(aid, songName, songDuration):
+    cursor.execute(
+        f"""SELECT count(*) as count FROM songs INNER JOIN perform on songs.sid = perform.sid
+        where perform.aid='{aid}' and Lower(songs.title)='{songName}' AND songs.duration={songDuration};""")
+
+    count = cursor.fetchone()
+    
+    print(count)
+
+    return (True if count[0] > 0 else False)
+
+
 def addSong(aid, songName, songDuration):
     sid = getNextUnusedId('songs', 'sid')
     

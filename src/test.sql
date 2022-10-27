@@ -5,13 +5,7 @@
 -- SELECT * FROM USERS;
 
 
-SELECT uid as uid FROM users WHERE uid='a10' AND pwd='1234';
+SELECT count(*) FROM songs where Lower(title)='wavinflag' AND duration=220;
 
 
-
-SELECT * FROM users;
-
-SELECT * FROM songs;
-
-SELECT * FROM artists;
-
+select * From songs INNER JOIN perform on songs.sid = perform.sid;
