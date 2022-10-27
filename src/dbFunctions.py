@@ -13,31 +13,84 @@ def connect(path):
     connection.commit()
     return cursor
 
-# Returns the user/artists name if login is sucsessful otherwise returns None
-def attemptLogin(tableName, id, pwd):
-    idFormat = " "
-    if (tableName == "users"):
-        idFormat = "uid"
-    else:
-        idFormat = "aid" 
 
-    cursor.execute(f"""SELECT Name FROM {tableName} WHERE {idFormat}='{id}' AND pwd='{pwd}'""")
+### LOGIN FUNCTIONS ###
+# Returns the userType if login is sucsessful otherwise returns None
+def attemptLoginBothTables(id, pwd):
+    userType = None
+    if (loginUser(id, pwd)):
+        userType = "user"
+    elif (loginArtist(id, pwd)):
+        userType = "artist"
+
+    return userType
+
+
+# Check is id is in both users and artists
+def idInBoth(id):
+    cursor.execute(f"""SELECT uid as id FROM users WHERE uid='{id}'
+                        UNION ALL
+                        SELECT aid as id FROM artists WHERE aid='{id}';""")
+
+    rows = cursor.fetchall()
+    return True if len(rows) > 1 else False
+
+
+# Returns True if login is sucsessful
+def loginUser(id, pwd):
+    cursor.execute(f"""SELECT * FROM users WHERE uid='{id}' and pwd='{pwd}'""")
     row = cursor.fetchone()
+    return (False if row == None else True)
 
-    return row
 
+# Returns True if login is sucsessful
+def loginArtist(id, pwd):
+    cursor.execute(
+        f"""SELECT * FROM artists WHERE aid='{id}' and pwd='{pwd}'""")
+    row = cursor.fetchone()
+    return (False if row == None else True)
+
+
+# User ID can match aid so only check Users
 def checkUserId(id):
     cursor.execute(f"""SELECT * FROM users WHERE uid='{id}'""")
     row = cursor.fetchone()
-
     return (False if row == None else True)
 
-def registerUser(id, name, password):
-    cursor.execute(f"""INSERT into users VALUES ("{id}", "{name}", "{password}");""")
 
+def registerUser(id, name, password):
+    cursor.execute(
+        f"""INSERT into users VALUES ("{id}", "{name}", "{password}");""")
+   
+    connection.commit()
+    
     return
 
 
+### ARTIST FUNCTIONS ###
+def addSong(aid, songName, songDuration):
+    sid = getNextUnusedId('songs', 'sid')
+    
+    cursor.execute(
+        f"""INSERT into songs VALUES ({sid}, "{songName}", {songDuration} );""")
+
+    cursor.execute(
+        f"""INSERT into perform VALUES ("{aid}",{sid});""")
+    
+    connection.commit()
+    
+    return
+
+### ALL FUNCTIONS ###
+# Only works if the PK is an int
+def getNextUnusedId(tableName, idColumnName):
+    cursor.execute(
+        f"""SELECT MAX({idColumnName}) + 1 FROM {tableName};""")
+
+    return cursor.fetchone()[0]
+
+
+### INITAL FUNCTIONS ###
 def createTables():
     global connection, cursor
     cursor.executescript("""drop table if exists perform;
@@ -117,8 +170,9 @@ def insert_data():
     global connection, cursor
     cursor.executescript("""PRAGMA foreign_keys = ON;
 
-insert into users values ("u10","Davood Rafiei", "1234");
-insert into users values ("u20","Hamed Mirzaei", "1234");
+insert into users values ('u1',"Scott G", "1234");
+insert into users values ('u10',"Davood Rafiei", "1234");
+insert into users values ('u20',"Hamed Mirzaei", "1234");
 
 insert into songs values (5, "Wavinflag", 220);
 insert into songs values (10, "Nice for what", 210);

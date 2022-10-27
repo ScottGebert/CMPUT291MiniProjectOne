@@ -2,43 +2,56 @@ import getpass
 import dbFunctions
 import login
 
-uid = None
-name = None
+aid = None
 
-# Store uid and name, start the menu
-def startMenu(userId, userName):
-    global uid, name
-    uid = userId
-    name = userName
+# Store uid, start the menu
+
+
+def startMenu(userId):
+    global aid
+    aid = userId
 
     menu()
-    return 
+    return
 
-def  printMenu():
+
+def printMenu():
     print("""
 1 - Add a song
 2 - Find top fans and playlists
-3- Logout
-4- Exit
+3 - Logout
+4 - Exit
 Enter a choice and press enter:""")
 
     return
 
+
 def menu():
     printMenu()
 
-    userInput = int(input())
-    if userInput == 1:
-        #TODO: Add song 
-        print("SessionStart")
-    elif userInput == 2:
-        #TODO: Find top fans and playlists
-        print("Search")
-    elif userInput == 3:
-        login.startLogin()
-    elif userInput == 4:
-        print("Exiting")
-    else:
-        print("Refer to menu")
+    while True:
+        userInput = int(input())
+        if userInput == 1:
+            #TODO: Add song
+            while True:
+                songName = input("Song Name: ")
+                songDuration = input("Song Duration: ")
+                if not (songDuration.isdigit()):
+                    print("Song Duration must be a number try again")
+                else:
+                    dbFunctions.addSong(aid, songName, songDuration)
+                    print("Song added")
+                    printMenu()
+                    break
+
+        elif userInput == 2:
+            #TODO: Find top fans and playlists
+            print("Search")
+        elif userInput == 3:
+            login.getLoginInfo()
+        elif userInput == 4:
+            break
+        else:
+            print("Refer to menu")
 
     return
