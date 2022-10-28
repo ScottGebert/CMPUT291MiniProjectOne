@@ -18,8 +18,8 @@ def printMenu():
 1 - Start a session
 2 - Search for songs and playlists
 3 - Search for artists
-4 - Logout
-5 - Exit
+4 - End a session
+5 - Logout
 Enter a choice and press enter:""")
 
     return
@@ -33,14 +33,20 @@ def menu():
         if userInput == 1:
             #TODO: Start a session
             print("SessionStart")
+            nextSessionNo = dbFunctions.getNextUnusedId('sessions', 'sno')
+            if nextSessionNo == None:
+                nextSessionNo = 1
+            
+            dbFunctions.startSession(uid, nextSessionNo)
         elif userInput == 2:
             #TODO: Playlist and song search
             print("Search")
+
         elif userInput == 3:
             #TODO: artist search
             print("SearchArtist")
         elif userInput == 4:
-            MiniProjectOne.main()
+            dbFunctions.endSession(uid)
         elif userInput == 5:
             exit()
             break

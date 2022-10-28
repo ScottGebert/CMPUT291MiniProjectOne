@@ -101,6 +101,21 @@ def getNextUnusedId(tableName, idColumnName):
 
     return cursor.fetchone()[0]
 
+def startSession(uid, sessionNo):
+    cursor.execute(
+        f"""INSERT into sessions VALUES ("{uid}", "{sessionNo}", {time.strftime("%Y-%m-%d")}, NULL);""")
+    
+    connection.commit()
+
+    return
+
+def endSession(uid):
+    cursor.execute(
+        f"""UPDATE sessions SET end={time.strftime("%Y-%m-%d")} WHERE uid="{uid}" AND end IS NULL;""")
+    
+    connection.commit()
+
+    return
 
 ### INITAL FUNCTIONS ###
 def createTables():
