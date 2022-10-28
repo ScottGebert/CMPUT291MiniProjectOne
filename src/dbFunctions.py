@@ -101,13 +101,17 @@ def getTopArtists(aid):
     ORDER BY sCount DESC
     LIMIT 3;
 """)
+    return cursor.fetchall()
+
 
 def getTopUsers(aid):
-    cursor.execute(f"""SELECT  title, Count(*) as sCount FROM plinclude INNER JOIN perform on perform.sid = plinclude.sid 
-    INNER JOIN playlists on playlists.pid = plinclude.pid
+    cursor.execute(f"""SELECT users.name, SUM(listen.cnt * songs.duration) as lTime FROM listen 
+    INNER JOIN perform on listen.sid = perform.sid
+    INNER JOIN songs on songs.sid = perform.sid
+    INNER JOIN users on listen.uid = users.uid
     WHERE perform.aid='{aid}'
-    GROUP BY plinclude.pid
-    ORDER BY sCount DESC
+    GROUP BY listen.uid
+    ORDER BY lTime  DESC
     LIMIT 3;
 """)
 

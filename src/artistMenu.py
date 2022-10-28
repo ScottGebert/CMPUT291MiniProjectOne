@@ -42,7 +42,9 @@ def menu():
         elif userInput == 2:
             # For now top playlists and top users is one command - can be split into 2 just add a number and
             # seperate function calls
-           getTopPlaylists()
+            getTopPlaylists()
+            getTopUsers()
+            printMenu()
         elif userInput == 3:
             login.getLoginInfo()
         elif userInput == 4:
@@ -70,23 +72,23 @@ def addSong(songName, songDuration):
 
 def getTopPlaylists():
     rows = dbFunctions.getTopArtists(aid)
-    if (len(rows) > 0):
+    if (rows != None):
         print("Top playlists")
         i = 1
         for row in rows:
             print(i, row[0])
             i = i + 1
     else:
-        print("No songs in playlist")
+        print("None of your songs appear in any playlists")
 
 
 def getTopUsers():
     rows = dbFunctions.getTopUsers(aid)
-    if (len(rows) > 0):
-        print("Top playlists")
+    if (rows != None):
+        print("Top Fans")
         i = 1
         for row in rows:
             print(i, row[0])
             i = i + 1
     else:
-        print("No songs in playlist")
+        print("No users have listend to your music yet")
