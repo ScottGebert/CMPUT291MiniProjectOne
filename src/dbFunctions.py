@@ -1,3 +1,4 @@
+from datetime import datetime
 import sqlite3
 import time
 
@@ -103,7 +104,7 @@ def getNextUnusedId(tableName, idColumnName):
 
 def startSession(uid, sessionNo):
     cursor.execute(
-        f"""INSERT into sessions VALUES ("{uid}", "{sessionNo}", {time.strftime("%Y-%m-%d")}, NULL);""")
+        f"""INSERT into sessions VALUES ("{uid}", "{sessionNo}", "{datetime.now().strftime('%Y-%m-%d')}", NULL);""")
     
     connection.commit()
 
@@ -111,11 +112,15 @@ def startSession(uid, sessionNo):
 
 def endSession(uid):
     cursor.execute(
-        f"""UPDATE sessions SET end={time.strftime("%Y-%m-%d")} WHERE uid="{uid}" AND end IS NULL;""")
+        f"""UPDATE sessions SET end="{datetime.now().strftime('%Y-%m-%d')}" WHERE uid="{uid}" AND end IS NULL;""")
     
     connection.commit()
 
     return
+
+def searchSongs():
+    cursor.execute(
+        f"""SELECT * FROM songs WHERE title LIKE """)
 
 ### INITAL FUNCTIONS ###
 def createTables():
@@ -204,6 +209,9 @@ insert into users values ('u20',"Hamed Mirzaei", "1234");
 insert into songs values (5, "Wavinflag", 220);
 insert into songs values (10, "Nice for what", 210);
 insert into songs values (11, "Hold on, we are going home", 227);
+insert into songs values (15, "Move bitch, get out the way", 223);
+insert into songs values (16, "Nice for nothing", 230);
+insert into songs values (18, "Home", 205);
 
 insert into sessions values ("u10", 1, "2022-09-27", "2022-09-28");
 insert into sessions values ("u20", 1, "2022-09-25", "2022-09-27");
@@ -212,6 +220,10 @@ insert into listen values ("u10", 1, 5, 1.2);
 insert into listen values ("u10", 1, 11, 2.0);
 
 insert into playlists values (30, "Songs for 291", "u10");
+insert into playlists values (32, "Scotts songs", "u1");
+insert into playlists values (33, "Depressing songs", "u10");
+insert into playlists values (34, "Don't know but it sucks", "u20");
+insert into playlists values (35, "Another playlist", "u1");
 
 insert into plinclude values (30, 10, 1);
 insert into plinclude values (30, 11, 2);

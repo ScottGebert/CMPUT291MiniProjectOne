@@ -25,11 +25,11 @@ Enter a choice and press enter:""")
     return
 
 
-def menu():
-    printMenu()
-
-    userInput = int(input())
+def menu():    
     while True:
+        printMenu()
+        userInput = int(input())
+
         if userInput == 1:
             print("SessionStart")
             nextSessionNo = dbFunctions.getNextUnusedId('sessions', 'sno')
@@ -38,23 +38,18 @@ def menu():
             
             dbFunctions.startSession(uid, nextSessionNo)
         elif userInput == 2:
-            print("Search")
-
+            line = input("Enter keywords for a song or playlist: ")
+            keywords = line.split()
+            
         elif userInput == 3:
             #TODO: artist search
             print("SearchArtist")
         elif userInput == 4:
             dbFunctions.endSession(uid)
         elif userInput == 5:
-            exit()
-            break
+            return
         else:
-            print("Refer to menu")
+            print("Invalid input. Refer to menu")
 
     return
 
-
-def exit():
-    #TODO: End active sessions
-    print("exiting")
-    return
