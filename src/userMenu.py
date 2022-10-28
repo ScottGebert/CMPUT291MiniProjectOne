@@ -31,7 +31,6 @@ def menu():
     userInput = int(input())
     while True:
         if userInput == 1:
-            #TODO: Start a session
             print("SessionStart")
             nextSessionNo = dbFunctions.getNextUnusedId('sessions', 'sno')
             if nextSessionNo == None:
@@ -39,7 +38,6 @@ def menu():
             
             dbFunctions.startSession(uid, nextSessionNo)
         elif userInput == 2:
-            #TODO: Playlist and song search
             print("Search")
 
         elif userInput == 3:
