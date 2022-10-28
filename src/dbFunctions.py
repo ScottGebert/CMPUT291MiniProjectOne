@@ -68,6 +68,18 @@ def registerUser(id, name, password):
 
 
 ### ARTIST FUNCTIONS ###
+def songExists(aid, songName, songDuration):
+    cursor.execute(
+        f"""SELECT count(*) as count FROM songs INNER JOIN perform on songs.sid = perform.sid
+        where perform.aid='{aid}' and Lower(songs.title)='{songName}' AND songs.duration={songDuration};""")
+
+    count = cursor.fetchone()
+    
+    print(count)
+
+    return (True if count[0] > 0 else False)
+
+
 def addSong(aid, songName, songDuration):
     sid = getNextUnusedId('songs', 'sid')
     
@@ -89,6 +101,21 @@ def getNextUnusedId(tableName, idColumnName):
 
     return cursor.fetchone()[0]
 
+def startSession(uid, sessionNo):
+    cursor.execute(
+        f"""INSERT into sessions VALUES ("{uid}", "{sessionNo}", {time.strftime("%Y-%m-%d")}, NULL);""")
+    
+    connection.commit()
+
+    return
+
+def endSession(uid):
+    cursor.execute(
+        f"""UPDATE sessions SET end={time.strftime("%Y-%m-%d")} WHERE uid="{uid}" AND end IS NULL;""")
+    
+    connection.commit()
+
+    return
 
 ### INITAL FUNCTIONS ###
 def createTables():

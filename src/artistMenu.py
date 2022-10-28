@@ -26,6 +26,7 @@ Enter a choice and press enter:""")
     return
 
 
+
 def menu():
     printMenu()
 
@@ -39,8 +40,7 @@ def menu():
                 if not (songDuration.isdigit()):
                     print("Song Duration must be a number try again")
                 else:
-                    dbFunctions.addSong(aid, songName, songDuration)
-                    print("Song added")
+                    addSong(songName, songDuration)
                     printMenu()
                     break
 
@@ -54,4 +54,17 @@ def menu():
         else:
             print("Refer to menu")
 
+    return
+
+def addSong(songName, songDuration):
+    if(dbFunctions.songExists(aid, songName, songDuration)):
+        while True:
+            addAnyway = input("Song already exists would you like to add it anyways Y/N")
+            if (addAnyway.lower() == "n"):
+                return
+            elif(addAnyway.lower() == "y"):
+                break
+    
+    dbFunctions.addSong(aid, songName, songDuration)
+    print("Song added")
     return
