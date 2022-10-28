@@ -93,6 +93,26 @@ def addSong(aid, songName, songDuration):
     
     return
 
+def getTopArtists(aid):
+    cursor.execute(f"""SELECT  title, Count(*) as sCount FROM plinclude INNER JOIN perform on perform.sid = plinclude.sid 
+    INNER JOIN playlists on playlists.pid = plinclude.pid
+    WHERE perform.aid='{aid}'
+    GROUP BY plinclude.pid
+    ORDER BY sCount DESC
+    LIMIT 3;
+""")
+
+def getTopUsers(aid):
+    cursor.execute(f"""SELECT  title, Count(*) as sCount FROM plinclude INNER JOIN perform on perform.sid = plinclude.sid 
+    INNER JOIN playlists on playlists.pid = plinclude.pid
+    WHERE perform.aid='{aid}'
+    GROUP BY plinclude.pid
+    ORDER BY sCount DESC
+    LIMIT 3;
+""")
+
+    return cursor.fetchall()
+
 ### ALL FUNCTIONS ###
 # Only works if the PK is an int
 def getNextUnusedId(tableName, idColumnName):
