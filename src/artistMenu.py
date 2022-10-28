@@ -29,7 +29,6 @@ Enter a choice and press enter:""")
 
 def menu():
     printMenu()
-
     while True:
         userInput = int(input())
         if userInput == 1:
@@ -67,4 +66,11 @@ def addSong(songName, songDuration):
     
     dbFunctions.addSong(aid, songName, songDuration)
     print("Song added")
+    return
+
+
+def findTopFans():
+    return
+
+def findTopPlaylists():
     return
