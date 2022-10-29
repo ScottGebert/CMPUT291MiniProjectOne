@@ -47,6 +47,7 @@ def menu():
             printMenu()
         elif userInput == 3:
             login.getLoginInfo()
+            break
         elif userInput == 4:
             break
         else:
