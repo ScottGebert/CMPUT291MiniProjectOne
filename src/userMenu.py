@@ -94,7 +94,18 @@ def songActions(song):
         if selection == 1:
             dbFunctions.listenToSong(uid, song)
         elif selection == 2:
-            print("See more info")
+            print("id = " + str(song[0]))
+            print("title = " + song[1])
+            print("duration = " + str(song[2]))
+
+            artists = dbFunctions.getArtistsFromSong(song[0])
+            print("artists performed by: " + ', '.join(artists))
+            
+
+            playlists = dbFunctions.getPlaylistsFromSong(song[0])
+            if playlists != None:
+                print("playlists that song is in: " + ', '.join(playlists))
+
         elif selection == 3:
             print("Add to playlist")
         else:

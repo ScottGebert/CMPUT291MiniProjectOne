@@ -184,6 +184,17 @@ def listenToSong(uid, song):
     connection.commit()
 
 
+def getArtistsFromSong(sid):
+    cursor.execute(f"""SELECT name FROM perform LEFT OUTER JOIN artists USING(aid) WHERE sid={sid};""")
+    artists = [i[0] for i in cursor.fetchall()]
+    return artists
+
+
+def getPlaylistsFromSong(sid):
+    cursor.execute(f"""SELECT title FROM plinclude LEFT OUTER JOIN playlists USING(pid) WHERE sid={sid};""")
+    playlists = [i[0] for i in cursor.fetchall()]
+    return playlists
+
 
 ### INITAL FUNCTIONS ###
 def createTables():
@@ -293,12 +304,26 @@ insert into playlists values (35, "Another playlist", "u1");
 insert into plinclude values (30, 10, 1);
 insert into plinclude values (30, 11, 2);
 insert into plinclude values (30, 5, 3);
+insert into plinclude values (32, 11, 1);
+insert into plinclude values (32, 15, 2);
+insert into plinclude values (32, 16, 3);
 
 insert into artists values ("a10", "Drake", "Canada", "1234");
 insert into artists values ("a20", "Bob Ezrin", "Canadian", "1234");
+insert into artists values ("a21", "Willie Nelson", "Canadian", "1234");
+insert into artists values ("a22", "X", "Canadian", "1234");
+insert into artists values ("a23", "AA", "Canadian", "1234");
 
 insert into perform values ("a10", 5);
+insert into perform values ("a10", 10);
 insert into perform values ("a20", 10);
-insert into perform values ("a20", 11);""")
+insert into perform values ("a20", 11);
+insert into perform values ("a21", 11);
+insert into perform values ("a22", 15);
+insert into perform values ("a22", 16);
+insert into perform values ("a23", 16);
+insert into perform values ("a23", 18);
+insert into perform values ("a23", 19);
+insert into perform values ("a23", 20);""")
     connection.commit()
     return
