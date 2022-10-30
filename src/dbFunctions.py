@@ -102,25 +102,88 @@ def getNextUnusedId(tableName, idColumnName):
 
     return cursor.fetchone()[0]
 
-def startSession(uid, sessionNo):
-    cursor.execute(
-        f"""INSERT into sessions VALUES ("{uid}", "{sessionNo}", "{datetime.now().strftime('%Y-%m-%d')}", NULL);""")
-    
-    connection.commit()
 
-    return
+def getActiveSession(uid):
+    cursor.execute(f"""SELECT sno FROM sessions WHERE uid="{uid}" AND sessions.end IS NULL;""")
+    row = cursor.fetchone()
+    if row != None:
+        return row[0]
+
+    return row
+
+
+def startSession(uid):
+    # see if there is an active session
+    sno = getActiveSession(uid)
+    if sno == None:
+        # if no active session, create a new one
+        sno = getNextUnusedId('sessions', 'sno')
+        if sno == None:
+            sno = 1
+        
+        cursor.execute(
+        f"""INSERT into sessions VALUES ("{uid}", "{sno}", "{datetime.now().strftime('%Y-%m-%d')}", NULL);""")
+    
+        connection.commit()    
+
+    return sno
+
 
 def endSession(uid):
     cursor.execute(
-        f"""UPDATE sessions SET end="{datetime.now().strftime('%Y-%m-%d')}" WHERE uid="{uid}" AND end IS NULL;""")
+        f"""UPDATE sessions SET end="{datetime.now().strftime('%Y-%m-%d')}" WHERE uid="{uid}" AND sessions.end IS NULL AND start IS NOT NULL;""")
     
     connection.commit()
 
     return
 
-def searchSongs():
+
+def searchSongsAndPlaylists(keywords):
+    songQuery = f"""SELECT sid, title, duration FROM songs WHERE title LIKE '%{keywords[0]}%'\n"""
+    playlistQuery = f"""SELECT pid AS id, pl.title, ifnull(cnt, 0) AS duration
+		FROM (SELECT pid, playlists.title, SUM(duration) AS cnt FROM playlists LEFT OUTER JOIN plinclude USING(pid) LEFT OUTER JOIN songs USING(sid) GROUP BY pid) AS pl
+		WHERE pl.title LIKE '%{keywords[0]}%'\n"""
+        
+    for i in range(1, len(keywords)):
+        songQuery += "UNION ALL\n"
+        songQuery += f"""SELECT sid, title, duration FROM songs WHERE title LIKE '%{keywords[i]}%'\n"""
+
+        playlistQuery += "UNION ALL\n"
+        playlistQuery += f"""SELECT pid AS id, pl.title, ifnull(cnt, 0) AS duration
+		FROM (SELECT pid, playlists.title, SUM(duration) AS cnt FROM playlists LEFT OUTER JOIN plinclude USING(pid) LEFT OUTER JOIN songs USING(sid) GROUP BY pid) AS pl
+		WHERE pl.title LIKE '%{keywords[i]}%'\n"""
+
     cursor.execute(
-        f"""SELECT * FROM songs WHERE title LIKE """)
+        f"""SELECT id, title, duration, type
+            FROM (
+                SELECT sid AS id, title, duration AS duration, 'Song' AS type, count(*) AS matches
+                FROM ({songQuery})
+                GROUP BY id
+                UNION
+                SELECT id, title, duration, 'Playlist' AS type, count(*) AS matches
+                FROM ({playlistQuery})
+                GROUP BY id
+                )
+            ORDER BY matches DESC;""")
+    
+    return cursor.fetchall()
+
+
+def listenToSong(uid, song):
+    # if there is an active session, this function won't start a new one
+    sno = startSession(uid)
+
+    cursor.execute(f"""SELECT * FROM listen WHERE uid="{uid}" AND sno={sno} AND sid={song[0]};""")
+    row = cursor.fetchone()
+    if row == None:
+        cursor.execute(f"""INSERT INTO listen VALUES ("{uid}", "{sno}", {song[0]}, 1);""")
+    else:
+        cursor.execute(
+        f"""UPDATE listen SET cnt=cnt + 1 WHERE uid="{uid}" AND sno="{sno}" AND sid={song[0]};""")
+    
+    connection.commit()
+
+
 
 ### INITAL FUNCTIONS ###
 def createTables():
@@ -212,6 +275,8 @@ insert into songs values (11, "Hold on, we are going home", 227);
 insert into songs values (15, "Move bitch, get out the way", 223);
 insert into songs values (16, "Nice for nothing", 230);
 insert into songs values (18, "Home", 205);
+insert into songs values (19, "song", 205);
+insert into songs values (20, "another song", 205);
 
 insert into sessions values ("u10", 1, "2022-09-27", "2022-09-28");
 insert into sessions values ("u20", 1, "2022-09-25", "2022-09-27");
