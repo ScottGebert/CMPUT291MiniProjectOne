@@ -107,7 +107,47 @@ def songActions(song):
                 print("playlists that song is in: " + ', '.join(playlists))
 
         elif selection == 3:
-            print("Add to playlist")
+            printAddToPlaylistMenu()
+
+            plSelection = int(input("Select an option: "))
+            while plSelection < 1 or plSelection > 3:
+                print("Invalid selection")
+                plSelection = int(input("Select an option: "))
+            
+            if plSelection == 1:
+                playlists = dbFunctions.getPlaylistsFromUid(uid)
+                if len(playlists) < 1:
+                    print("You do not have any playlists")
+                    while True:
+                        yn = input("Would you like to create a new playlist ? Y/N: ")
+                        if (yn.lower() == "y"):
+                            plSelection = 2
+                            break
+                        elif (yn.lower() == "n"):
+                            plSelection = 3 # just go back
+                            break
+                else:
+                    print("Here is a list of the playlists you own")
+                    print("   |ID| Title ")
+                    playlistsDict = dict((i, match) for i, match in enumerate(playlists, 1))
+                    for i, pl in playlistsDict.items():
+                        print(str(i) + " - " + str(pl[0]) + "| " + pl[1])
+                    
+                    option = int(input("Select an option: "))                    
+                    while option not in playlistsDict:
+                        print("Invalid selection")
+                        option = int(input("Select an option: "))
+                    
+                    dbFunctions.addSongToPlaylist(song[0], playlistsDict[option][0])
+
+            # not elif incase user selects 1 and no playlists exist
+            if plSelection == 2:
+                title = input("\nEnter a title for your new playlist: ")
+                pid = dbFunctions.createNewPlaylist(uid, title)
+                dbFunctions.addSongToPlaylist(song[0], pid)
+            elif plSelection == 3:
+                continue
+
         else:
             return
 
@@ -118,5 +158,13 @@ def printSongActionMenu():
 2 - See more information about song
 3 - Add song to playlist
 4 - Back
+    """)
+
+
+def printAddToPlaylistMenu():
+    print("""
+1 - Add to existing playlist
+2 - Add to new playlist
+3 - Back
     """)
 

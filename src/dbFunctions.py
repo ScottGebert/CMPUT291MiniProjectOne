@@ -196,6 +196,47 @@ def getPlaylistsFromSong(sid):
     return playlists
 
 
+def getPlaylistsFromUid(uid):
+    cursor.execute(f"""SELECT pid, title FROM playlists WHERE uid="{uid}";""")
+    return cursor.fetchall()
+
+
+def createNewPlaylist(uid, title):
+    pid = getNextUnusedId('playlists', 'pid')
+    if pid == None:
+        pid = 1
+    
+    cursor.execute(f"""INSERT INTO playlists VALUES ({pid}, "{title}", "{uid}");""")
+    connection.commit()
+    
+    return pid
+
+
+def addSongToPlaylist(sid, pid):
+    if songExistsInPlaylist(sid, pid):
+        print("Song already exists in playlist")
+        return
+    
+    # get next sort order value
+    cursor.execute(f"""SELECT MAX(sorder) FROM plinclude WHERE pid={pid} AND sid="{sid}";""")
+    sorder = cursor.fetchone()[0]
+    if sorder == None:
+        sorder = 1
+    else:
+        sorder = sorder + 1
+    
+    cursor.execute(f"""INSERT INTO plinclude VALUES ({pid}, "{sid}", {sorder});""")
+    connection.commit()
+
+    return
+
+
+def songExistsInPlaylist(sid, pid):
+    cursor.execute(f"""SELECT COUNT(*) FROM plinclude WHERE pid={pid} AND sid={sid}""")
+    count = cursor.fetchone()
+    return (True if count[0] > 0 else False)
+
+
 ### INITAL FUNCTIONS ###
 def createTables():
     global connection, cursor
