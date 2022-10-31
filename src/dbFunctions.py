@@ -62,9 +62,9 @@ def checkUserId(id):
 def registerUser(id, name, password):
     cursor.execute(
         f"""INSERT into users VALUES ("{id}", "{name}", "{password}");""")
-   
+
     connection.commit()
-    
+
     return
 
 
@@ -75,7 +75,7 @@ def songExists(aid, songName, songDuration):
         where perform.aid='{aid}' and Lower(songs.title)='{songName}' AND songs.duration={songDuration};""")
 
     count = cursor.fetchone()
-    
+
     print(count)
 
     return (True if count[0] > 0 else False)
@@ -83,19 +83,46 @@ def songExists(aid, songName, songDuration):
 
 def addSong(aid, songName, songDuration):
     sid = getNextUnusedId('songs', 'sid')
-    
+
     cursor.execute(
         f"""INSERT into songs VALUES ({sid}, "{songName}", {songDuration} );""")
 
     cursor.execute(
         f"""INSERT into perform VALUES ("{aid}",{sid});""")
-    
+
     connection.commit()
-    
+
     return
+
+
+def getTopArtists(aid):
+    cursor.execute(f"""SELECT  title, Count(*) as sCount FROM plinclude INNER JOIN perform on perform.sid = plinclude.sid 
+    INNER JOIN playlists on playlists.pid = plinclude.pid
+    WHERE perform.aid='{aid}'
+    GROUP BY plinclude.pid
+    ORDER BY sCount DESC
+    LIMIT 3;
+""")
+    return cursor.fetchall()
+
+
+def getTopUsers(aid):
+    cursor.execute(f"""SELECT users.name, SUM(listen.cnt * songs.duration) as lTime FROM listen 
+    INNER JOIN perform on listen.sid = perform.sid
+    INNER JOIN songs on songs.sid = perform.sid
+    INNER JOIN users on listen.uid = users.uid
+    WHERE perform.aid='{aid}'
+    GROUP BY listen.uid
+    ORDER BY lTime  DESC
+    LIMIT 3;
+""")
+
+    return cursor.fetchall()
 
 ### ALL FUNCTIONS ###
 # Only works if the PK is an int
+
+
 def getNextUnusedId(tableName, idColumnName):
     cursor.execute(
         f"""SELECT MAX({idColumnName}) + 1 FROM {tableName};""")
@@ -269,6 +296,8 @@ def searchArtists(keywords):
 
 
 ### INITAL FUNCTIONS ###
+
+
 def createTables():
     global connection, cursor
     cursor.executescript("""drop table if exists perform;
