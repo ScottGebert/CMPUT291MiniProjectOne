@@ -20,25 +20,51 @@ def printMenu():
 3 - Search for artists
 4 - End a session
 5 - Logout
+
 Enter a choice and press enter:""")
 
     return
 
 
-def menu():
-    printMenu()
-
-    userInput = int(input())
+def menu():    
     while True:
+        printMenu()
+        userInput = int(input())
+
         if userInput == 1:
-            print("SessionStart")
-            nextSessionNo = dbFunctions.getNextUnusedId('sessions', 'sno')
-            if nextSessionNo == None:
-                nextSessionNo = 1
-            
-            dbFunctions.startSession(uid, nextSessionNo)
+            print("SessionStart")            
+            dbFunctions.startSession(uid)
+
         elif userInput == 2:
-            print("Search")
+            line = input("Enter keywords for a song or playlist: ")
+            keywords = line.split()
+            matchingValues = dbFunctions.searchSongsAndPlaylists(keywords)
+            if matchingValues == None:
+                print("No songs or playlists matched the keywords given")
+                continue
+
+            print("There were " + str(len(matchingValues)) + " search results")
+            matchesDict = dict((i, match) for i, match in enumerate(matchingValues, 1))           
+            for i, match in matchesDict.items():
+                if i > 5:
+                    print("6 - See the rest of the list")
+                    break
+                print(str(i) + " - " + ' '.join(map(str, match)))
+            
+            selection = int(input("Select an option: "))
+            
+            # this means that 6 was see the rest of the list
+            if selection == 6 and len(matchingValues) > 5:
+                for i, match in matchesDict.items():                
+                    print(str(i) + " - " + ' '.join(map(str, match)))
+                
+                selection = int(input("Select an option: "))
+
+            if selection <= len(matchingValues):
+                if matchesDict[selection][3] == 'Song':
+                    songActions(matchesDict[selection])
+                else:
+                    print(' '.join(map(str, matchesDict[selection])))
 
         elif userInput == 3:
             #TODO: artist search
@@ -46,15 +72,99 @@ def menu():
         elif userInput == 4:
             dbFunctions.endSession(uid)
         elif userInput == 5:
-            exit()
-            break
+            if dbFunctions.getActiveSession(uid) != None:
+                dbFunctions.endSession(uid)
+            return
         else:
-            print("Refer to menu")
+            print("Invalid input. Refer to menu")
 
-    return
+    
+
+def songActions(song):
+    print(song[1] + " was selected")
+
+    while True:
+        printSongActionMenu()
+        selection = int(input("Select an option: "))
+
+        while selection < 1 or selection > 4:
+            print("Invalid selection")
+            selection = int(input("Select an option: "))
+
+        if selection == 1:
+            dbFunctions.listenToSong(uid, song)
+        elif selection == 2:
+            print("id = " + str(song[0]))
+            print("title = " + song[1])
+            print("duration = " + str(song[2]))
+
+            artists = dbFunctions.getArtistsFromSong(song[0])
+            print("artists performed by: " + ', '.join(artists))
+            
+
+            playlists = dbFunctions.getPlaylistsFromSong(song[0])
+            if playlists != None:
+                print("playlists that song is in: " + ', '.join(playlists))
+
+        elif selection == 3:
+            printAddToPlaylistMenu()
+
+            plSelection = int(input("Select an option: "))
+            while plSelection < 1 or plSelection > 3:
+                print("Invalid selection")
+                plSelection = int(input("Select an option: "))
+            
+            if plSelection == 1:
+                playlists = dbFunctions.getPlaylistsFromUid(uid)
+                if len(playlists) < 1:
+                    print("You do not have any playlists")
+                    while True:
+                        yn = input("Would you like to create a new playlist ? Y/N: ")
+                        if (yn.lower() == "y"):
+                            plSelection = 2
+                            break
+                        elif (yn.lower() == "n"):
+                            plSelection = 3 # just go back
+                            break
+                else:
+                    print("Here is a list of the playlists you own")
+                    print("   |ID| Title ")
+                    playlistsDict = dict((i, match) for i, match in enumerate(playlists, 1))
+                    for i, pl in playlistsDict.items():
+                        print(str(i) + " - " + str(pl[0]) + "| " + pl[1])
+                    
+                    option = int(input("Select an option: "))                    
+                    while option not in playlistsDict:
+                        print("Invalid selection")
+                        option = int(input("Select an option: "))
+                    
+                    dbFunctions.addSongToPlaylist(song[0], playlistsDict[option][0])
+
+            # not elif incase user selects 1 and no playlists exist
+            if plSelection == 2:
+                title = input("\nEnter a title for your new playlist: ")
+                pid = dbFunctions.createNewPlaylist(uid, title)
+                dbFunctions.addSongToPlaylist(song[0], pid)
+            elif plSelection == 3:
+                continue
+
+        else:
+            return
 
 
-def exit():
-    #TODO: End active sessions
-    print("exiting")
-    return
+def printSongActionMenu():
+    print("""
+1 - Listen to song
+2 - See more information about song
+3 - Add song to playlist
+4 - Back
+    """)
+
+
+def printAddToPlaylistMenu():
+    print("""
+1 - Add to existing playlist
+2 - Add to new playlist
+3 - Back
+    """)
+
