@@ -237,6 +237,37 @@ def songExistsInPlaylist(sid, pid):
     return (True if count[0] > 0 else False)
 
 
+def searchArtists(keywords):
+    nameQuery = f"""SELECT sid, title, duration FROM songs WHERE title LIKE '%{keywords[0]}%'\n"""
+    songQuery = f"""SELECT pid AS id, pl.title, ifnull(cnt, 0) AS duration
+		FROM (SELECT pid, playlists.title, SUM(duration) AS cnt FROM playlists LEFT OUTER JOIN plinclude USING(pid) LEFT OUTER JOIN songs USING(sid) GROUP BY pid) AS pl
+		WHERE pl.title LIKE '%{keywords[0]}%'\n"""
+        
+    for i in range(1, len(keywords)):
+        nameQuery += "UNION ALL\n"
+        nameQuery += f"""SELECT sid, title, duration FROM songs WHERE title LIKE '%{keywords[i]}%'\n"""
+
+        songQuery += "UNION ALL\n"
+        songQuery += f"""SELECT pid AS id, pl.title, ifnull(cnt, 0) AS duration
+		FROM (SELECT pid, playlists.title, SUM(duration) AS cnt FROM playlists LEFT OUTER JOIN plinclude USING(pid) LEFT OUTER JOIN songs USING(sid) GROUP BY pid) AS pl
+		WHERE pl.title LIKE '%{keywords[i]}%'\n"""
+
+    cursor.execute(
+        f"""SELECT id, title, duration, type
+            FROM (
+                SELECT sid AS id, title, duration AS duration, 'Song' AS type, count(*) AS matches
+                FROM ({nameQuery})
+                GROUP BY id
+                UNION
+                SELECT id, title, duration, 'Playlist' AS type, count(*) AS matches
+                FROM ({songQuery})
+                GROUP BY id
+                )
+            ORDER BY matches DESC;""")
+    
+    return cursor.fetchall()
+
+
 ### INITAL FUNCTIONS ###
 def createTables():
     global connection, cursor
