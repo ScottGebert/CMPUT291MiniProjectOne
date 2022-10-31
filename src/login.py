@@ -1,5 +1,6 @@
 import getpass
 import dbFunctions
+import MiniProjectOne
 
 # Functionality for starting the login process
 # returns the id of the user/artist and type of user (artist or user)
@@ -7,8 +8,9 @@ import dbFunctions
 
 def getLoginInfo():
     while True:
-        id = getId()
-        password = input("Password: ")  # getPassword() returns err currently
+        id = MiniProjectOne.getInput('ID: ', 'Must input an ID')
+        password = MiniProjectOne.getInput("Password: ", "Must Input a password")  # getPassword() returns err currently
+       
 
         if (dbFunctions.idInBoth(id)):
             userOrArtist = ""
@@ -58,30 +60,18 @@ def displayWelcome():
     print(title)
 
 
-def getId():
-    id = input('ID: ')
-    return id
 
-
-def getPassword():
-    try:
-        password = getpass()
-    except Exception as error:
-        print('Error: ', error)
-    else:
-        print(password)
-        return password
 
 
 def registerUser():
     print("New User Registration")
-    id = getId()
+    id = MiniProjectOne.getInput('ID: ', 'Must input an ID')
     while dbFunctions.checkUserId(id):
         print('That user id is already taken. Please enter a new one')
-        id = getId()
+        id = MiniProjectOne.getInput('ID: ', 'Must input an ID')
 
-    name = input('Name: ')
-    password = input('Password: ')
+    name = MiniProjectOne.getInput('Name: ', 'Must input a name')
+    password = MiniProjectOne.getInput('Password: ', 'Must input a password')
 
     dbFunctions.registerUser(id, name, password)
 
