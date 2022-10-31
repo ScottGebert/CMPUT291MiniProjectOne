@@ -8,6 +8,14 @@ import userMenu
 path = "miniProject.db"
 
 
+def getInput(message, errMessage):
+    while True:
+        toRet = input(message)
+        if (toRet ==""):
+            print(errMessage)
+        else:
+            return toRet
+
 def main():
     # Initalizes Connection to the DB - use dbFunctions.Cursor for executing queries
     dbFunctions.connect(path)
@@ -16,7 +24,6 @@ def main():
     # dbFunctions.insert_data()
 
     userType, id = login.getLoginInfo()
-    print(userType, id)
 
     if (userType == "artist"):
         artistMenu.startMenu(id)

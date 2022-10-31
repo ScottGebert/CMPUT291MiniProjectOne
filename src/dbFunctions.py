@@ -61,9 +61,9 @@ def checkUserId(id):
 def registerUser(id, name, password):
     cursor.execute(
         f"""INSERT into users VALUES ("{id}", "{name}", "{password}");""")
-   
+
     connection.commit()
-    
+
     return
 
 
@@ -74,7 +74,7 @@ def songExists(aid, songName, songDuration):
         where perform.aid='{aid}' and Lower(songs.title)='{songName}' AND songs.duration={songDuration};""")
 
     count = cursor.fetchone()
-    
+
     print(count)
 
     return (True if count[0] > 0 else False)
@@ -82,16 +82,17 @@ def songExists(aid, songName, songDuration):
 
 def addSong(aid, songName, songDuration):
     sid = getNextUnusedId('songs', 'sid')
-    
+
     cursor.execute(
         f"""INSERT into songs VALUES ({sid}, "{songName}", {songDuration} );""")
 
     cursor.execute(
         f"""INSERT into perform VALUES ("{aid}",{sid});""")
-    
+
     connection.commit()
-    
+
     return
+
 
 def getTopArtists(aid):
     cursor.execute(f"""SELECT  title, Count(*) as sCount FROM plinclude INNER JOIN perform on perform.sid = plinclude.sid 
@@ -119,29 +120,35 @@ def getTopUsers(aid):
 
 ### ALL FUNCTIONS ###
 # Only works if the PK is an int
+
+
 def getNextUnusedId(tableName, idColumnName):
     cursor.execute(
         f"""SELECT MAX({idColumnName}) + 1 FROM {tableName};""")
 
     return cursor.fetchone()[0]
 
+
 def startSession(uid, sessionNo):
     cursor.execute(
         f"""INSERT into sessions VALUES ("{uid}", "{sessionNo}", {time.strftime("%Y-%m-%d")}, NULL);""")
-    
+
     connection.commit()
 
     return
 
+
 def endSession(uid):
     cursor.execute(
         f"""UPDATE sessions SET end={time.strftime("%Y-%m-%d")} WHERE uid="{uid}" AND end IS NULL;""")
-    
+
     connection.commit()
 
     return
 
 ### INITAL FUNCTIONS ###
+
+
 def createTables():
     global connection, cursor
     cursor.executescript("""drop table if exists perform;

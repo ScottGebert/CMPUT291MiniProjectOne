@@ -1,6 +1,8 @@
 import getpass
 import dbFunctions
 import login
+import MiniProjectOne
+import userMenu
 
 aid = None
 
@@ -27,11 +29,11 @@ Enter a choice and press enter:""")
 def menu():
     printMenu()
     while True:
-        userInput = int(input())
+        userInput = int(MiniProjectOne.getInput("", "Must make a selection"))
         if userInput == 1:
             while True:
-                songName = input("Song Name: ")
-                songDuration = input("Song Duration: ")
+                songName = MiniProjectOne.getInput("Song Name: ", "Song name cannot be blank")
+                songDuration = MiniProjectOne.getInput("Song Duration: ", "Song Duration cannot be blank")
                 if not (songDuration.isdigit()):
                     print("Song Duration must be a number try again")
                 else:
@@ -46,7 +48,12 @@ def menu():
             getTopUsers()
             printMenu()
         elif userInput == 3:
-            login.getLoginInfo()
+            # Think this may mess up the while loop -- will see how logan handles
+            userType, id = login.getLoginInfo()
+            if (userType == "artist"):
+                startMenu(id)
+            elif (userType == "user"):
+                userMenu.startMenu(id)
             break
         elif userInput == 4:
             break
@@ -59,25 +66,25 @@ def menu():
 def addSong(songName, songDuration):
     if (dbFunctions.songExists(aid, songName, songDuration)):
         while True:
-            addAnyway = input(
-                "Song already exists would you like to add it anyways Y/N")
+            addAnyway = MiniProjectOne.getInput(
+                "Song already exists would you like to add it anyways Y/N", "Must select Y/N")
             if (addAnyway.lower() == "n"):
                 return
             elif (addAnyway.lower() == "y"):
                 break
 
     dbFunctions.addSong(aid, songName, songDuration)
-    print("Song added")
+    print("Song added!")
     return
 
 
 def getTopPlaylists():
     rows = dbFunctions.getTopArtists(aid)
     if (rows != None):
-        print("Top playlists")
+        print("Top Playlists:")
         i = 1
         for row in rows:
-            print(i, row[0])
+            print("   ", i, row[0])
             i = i + 1
     else:
         print("None of your songs appear in any playlists")
@@ -86,10 +93,10 @@ def getTopPlaylists():
 def getTopUsers():
     rows = dbFunctions.getTopUsers(aid)
     if (rows != None):
-        print("Top Fans")
+        print("Top Fans:")
         i = 1
         for row in rows:
-            print(i, row[0])
+            print("   ",i, row[0])
             i = i + 1
     else:
         print("No users have listend to your music yet")
