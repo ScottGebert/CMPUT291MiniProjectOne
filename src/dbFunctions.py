@@ -265,33 +265,53 @@ def songExistsInPlaylist(sid, pid):
 
 
 def searchArtists(keywords):
-    nameQuery = f"""SELECT sid, title, duration FROM songs WHERE title LIKE '%{keywords[0]}%'\n"""
-    songQuery = f"""SELECT pid AS id, pl.title, ifnull(cnt, 0) AS duration
-		FROM (SELECT pid, playlists.title, SUM(duration) AS cnt FROM playlists LEFT OUTER JOIN plinclude USING(pid) LEFT OUTER JOIN songs USING(sid) GROUP BY pid) AS pl
-		WHERE pl.title LIKE '%{keywords[0]}%'\n"""
+    nameQuery = f"""SELECT aid, name, nationality FROM artists WHERE name LIKE '%{keywords[0]}%'\n"""
+    songQuery = f"""SELECT aid, name, nationality
+                    FROM artists LEFT OUTER JOIN perform USING(aid) LEFT OUTER JOIN songs USING(sid) 
+                    WHERE title LIKE '%{keywords[0]}%' 
+                    GROUP BY aid
+                    HAVING COUNT(*) > 0\n"""
         
     for i in range(1, len(keywords)):
         nameQuery += "UNION ALL\n"
-        nameQuery += f"""SELECT sid, title, duration FROM songs WHERE title LIKE '%{keywords[i]}%'\n"""
+        nameQuery += f"""SELECT aid, name, nationality FROM artists WHERE name LIKE '%{keywords[i]}%'\n"""
 
         songQuery += "UNION ALL\n"
-        songQuery += f"""SELECT pid AS id, pl.title, ifnull(cnt, 0) AS duration
-		FROM (SELECT pid, playlists.title, SUM(duration) AS cnt FROM playlists LEFT OUTER JOIN plinclude USING(pid) LEFT OUTER JOIN songs USING(sid) GROUP BY pid) AS pl
-		WHERE pl.title LIKE '%{keywords[i]}%'\n"""
+        songQuery += f"""SELECT aid, name, nationality
+                        FROM artists LEFT OUTER JOIN perform USING(aid) LEFT OUTER JOIN songs USING(sid) 
+                        WHERE title LIKE '%{keywords[i]}%' 
+                        GROUP BY aid
+                        HAVING COUNT(*) > 0\n"""
 
     cursor.execute(
-        f"""SELECT id, title, duration, type
+        f"""WITH artistSongCnt(aid, cnt) AS 
+            (SELECT aid, COUNT(*)
+             FROM perform
+             GROUP BY aid
+            )
+            SELECT q.aid, name, nationality, artistSongCnt.cnt AS songcount
             FROM (
-                SELECT sid AS id, title, duration AS duration, 'Song' AS type, count(*) AS matches
+                SELECT aid, name, nationality, count(*) AS matches
                 FROM ({nameQuery})
-                GROUP BY id
+                GROUP BY aid
                 UNION
-                SELECT id, title, duration, 'Playlist' AS type, count(*) AS matches
+                SELECT aid, name, nationality, count(*) AS matches
                 FROM ({songQuery})
-                GROUP BY id
-                )
+                GROUP BY aid
+                ) AS q, artistSongCnt
+            WHERE q.aid=artistSongCnt.aid
             ORDER BY matches DESC;""")
     
+    return cursor.fetchall()
+
+
+def getArtistsSongs(aid):
+    cursor.execute(f"""SELECT sid, title, duration FROM perform LEFT OUTER JOIN songs USING(sid) WHERE aid="{aid}";""")
+    return cursor.fetchall()
+
+
+def getSongsInPlaylist(pid):
+    cursor.execute(f"""SELECT sid, title, duration FROM plinclude LEFT OUTER JOIN songs USING(sid) WHERE pid={pid};""")
     return cursor.fetchall()
 
 

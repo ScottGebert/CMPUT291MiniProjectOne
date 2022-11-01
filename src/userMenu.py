@@ -49,14 +49,14 @@ def menu():
                 if i > 5:
                     print("6 - See the rest of the list")
                     break
-                print(str(i) + " - " + ' '.join(map(str, match)))
+                print(str(i) + " - " + ' | '.join(map(str, match)))
             
             selection = int(input("Select an option: "))
             
             # this means that 6 was see the rest of the list
             if selection == 6 and len(matchingValues) > 5:
                 for i, match in matchesDict.items():                
-                    print(str(i) + " - " + ' '.join(map(str, match)))
+                    print(str(i) + " - " + ' | '.join(map(str, match)))
                 
                 selection = int(input("Select an option: "))
 
@@ -64,11 +64,62 @@ def menu():
                 if matchesDict[selection][3] == 'Song':
                     songActions(matchesDict[selection])
                 else:
-                    print(' '.join(map(str, matchesDict[selection])))
+                    songs = dbFunctions.getSongsInPlaylist(matchesDict[selection][0])
+                    if songs == None:
+                        print(matchesDict[selection][1] + " does not have any songs")
+                        continue
+
+                    print(matchesDict[selection][1] + " has " + str(len(songs)) + " songs")
+                    songsDict = dict((i, match) for i, match in enumerate(songs, 1))           
+                    for i, match in songsDict.items():
+                        print(str(i) + " - " + ' | '.join(map(str, match)))
+                    
+                    selection = int(input("Select an option: "))
+
+                    if selection <= len(songs):
+                        songActions(songsDict[selection])
 
         elif userInput == 3:
-            #TODO: artist search
-            print("SearchArtist")
+            line = input("Enter keywords for an artist: ")
+            keywords = line.split()
+            artists = dbFunctions.searchArtists(keywords)
+            if artists == None:
+                print("No artists or songs matched the keywords given")
+                continue
+
+            print("There were " + str(len(artists)) + " search results")
+            artistsDict = dict((i, match) for i, match in enumerate(artists, 1))           
+            for i, match in artistsDict.items():
+                if i > 5:
+                    print("6 - See the rest of the list")
+                    break
+                print(str(i) + " - " + ' | '.join(map(str, match[1:]))) # don't print the aid
+            
+            selection = int(input("Select an option: "))
+            
+            # this means that 6 was see the rest of the list
+            if selection == 6 and len(artists) > 5:
+                for i, match in artistsDict.items():                
+                    print(str(i) + " - " + ' '.join(map(str, match[1:]))) # don't print the aid
+                
+                selection = int(input("Select an option: "))
+            
+            if selection <= len(artists):
+                songs = dbFunctions.getArtistsSongs(artistsDict[selection][0])
+                if songs == None:
+                    print(artistsDict[selection][1] + " does not have any songs")
+                    continue
+
+                print(artistsDict[selection][1] + " has " + str(len(songs)) + " songs")
+                songsDict = dict((i, match) for i, match in enumerate(songs, 1))           
+                for i, match in songsDict.items():
+                    print(str(i) + " - " + ' | '.join(map(str, match)))
+                
+                selection = int(input("Select an option: "))
+
+                if selection <= len(songs):
+                    songActions(songsDict[selection])
+            
         elif userInput == 4:
             dbFunctions.endSession(uid)
         elif userInput == 5:
