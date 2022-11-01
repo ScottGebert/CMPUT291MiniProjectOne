@@ -31,20 +31,24 @@ def menu():
         printMenu()
         userInput = int(input())
 
+        # start session
         if userInput == 1:
             print("SessionStart")            
             dbFunctions.startSession(uid)
 
+        # Search for song/playlist
         elif userInput == 2:
             line = input("Enter keywords for a song or playlist: ")
             keywords = line.split()
             matchingValues = dbFunctions.searchSongsAndPlaylists(keywords)
-            if matchingValues == None:
+            if matchingValues == None or len(matchingValues) < 1:
                 print("No songs or playlists matched the keywords given")
-                continue
-
+                continue            
+            
             print("There were " + str(len(matchingValues)) + " search results")
-            matchesDict = dict((i, match) for i, match in enumerate(matchingValues, 1))           
+            matchesDict = dict((i, match) for i, match in enumerate(matchingValues, 1))  
+
+            # only print the first 5 matches         
             for i, match in matchesDict.items():
                 if i > 5:
                     print("6 - See the rest of the list")
@@ -83,7 +87,7 @@ def menu():
             line = input("Enter keywords for an artist: ")
             keywords = line.split()
             artists = dbFunctions.searchArtists(keywords)
-            if artists == None:
+            if artists == None or len(artists) < 1:
                 print("No artists or songs matched the keywords given")
                 continue
 
@@ -95,7 +99,7 @@ def menu():
                     break
                 print(str(i) + " - " + ' | '.join(map(str, match[1:]))) # don't print the aid
             
-            selection = int(input("Select an option: "))
+            selection = int(input("\nSelect an option: "))
             
             # this means that 6 was see the rest of the list
             if selection == 6 and len(artists) > 5:
@@ -106,7 +110,7 @@ def menu():
             
             if selection <= len(artists):
                 songs = dbFunctions.getArtistsSongs(artistsDict[selection][0])
-                if songs == None:
+                if songs == None or len(songs) < 1:
                     print(artistsDict[selection][1] + " does not have any songs")
                     continue
 
@@ -115,7 +119,7 @@ def menu():
                 for i, match in songsDict.items():
                     print(str(i) + " - " + ' | '.join(map(str, match)))
                 
-                selection = int(input("Select an option: "))
+                selection = int(input("\nSelect an option: "))
 
                 if selection <= len(songs):
                     songActions(songsDict[selection])

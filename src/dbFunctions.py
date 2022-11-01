@@ -294,13 +294,14 @@ def searchArtists(keywords):
                 SELECT aid, name, nationality, count(*) AS matches
                 FROM ({nameQuery})
                 GROUP BY aid
-                UNION
+                UNION ALL
                 SELECT aid, name, nationality, count(*) AS matches
                 FROM ({songQuery})
                 GROUP BY aid
                 ) AS q, artistSongCnt
             WHERE q.aid=artistSongCnt.aid
-            ORDER BY matches DESC;""")
+            GROUP BY q.aid
+            ORDER BY SUM(matches) DESC;""")
     
     return cursor.fetchall()
 
