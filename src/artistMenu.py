@@ -6,15 +6,6 @@ import userMenu
 
 aid = None
 
-# Store uid, start the menu
-def startMenu(userId):
-    global aid
-    aid = userId
-
-    menu()
-    return
-
-
 def printMenu():
     print("""
 1 - Add a song
@@ -26,7 +17,10 @@ Enter a choice and press enter:""")
     return
 
 
-def menu():
+def menu(userId):
+    global aid
+    aid = userId
+    
     printMenu()
     while True:
         userInput = int(MiniProjectOne.getInput("", "Must make a selection"))
@@ -48,15 +42,9 @@ def menu():
             getTopUsers()
             printMenu()
         elif userInput == 3:
-            # Think this may mess up the while loop -- will see how logan handles
-            userType, id = login.getLoginInfo()
-            if (userType == "artist"):
-                startMenu(id)
-            elif (userType == "user"):
-                userMenu.startMenu(id)
-            break
+            return True
         elif userInput == 4:
-            break
+            return False
         else:
             print("Refer to menu")
 

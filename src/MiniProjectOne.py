@@ -14,13 +14,15 @@ def main():
 
     # dbFunctions.createTables()
     # dbFunctions.insert_data()
+    run = True
+    while run:
+        userType, id = login.getLoginInfo()
 
-    userType, id = login.getLoginInfo()
+        if (userType == "artist"):
+            run = artistMenu.menu(id)
+        elif (userType == "user"):
+            run = userMenu.menu(id)
 
-    if (userType == "artist"):
-        artistMenu.startMenu(id)
-    elif (userType == "user"):
-        userMenu.startMenu(id)
 
     dbFunctions.connection.commit()
     dbFunctions.connection.close()

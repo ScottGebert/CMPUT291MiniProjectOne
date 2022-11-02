@@ -4,14 +4,6 @@ import MiniProjectOne
 
 uid = None
 
-# Store uid start the menu
-def startMenu(userId):
-    global uid
-    uid = userId
-
-    menu()
-    return
-
 
 def printMenu():
     print("""
@@ -26,7 +18,9 @@ Enter a choice and press enter:""")
     return
 
 
-def menu():    
+def menu(userId): 
+    global uid
+    uid = userId  
     while True:
         printMenu()
         userInput = int(input())
@@ -127,15 +121,13 @@ def menu():
         elif userInput == 4:
             dbFunctions.endSession(uid)
         elif userInput == 5:
-            # TODO implment logout
             if dbFunctions.getActiveSession(uid) != None:
                 dbFunctions.endSession(uid)
-            return
+            return True
         elif userInput == 6:
-            # TODO implment exit
             if dbFunctions.getActiveSession(uid) != None:
                 dbFunctions.endSession(uid)
-            return
+            return False
         else:
             print("Invalid input. Refer to menu")
 
