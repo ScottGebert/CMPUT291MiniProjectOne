@@ -264,6 +264,58 @@ def songExistsInPlaylist(sid, pid):
     return (True if count[0] > 0 else False)
 
 
+def searchArtists(keywords):
+    nameQuery = f"""SELECT aid, name, nationality FROM artists WHERE name LIKE '%{keywords[0]}%'\n"""
+    songQuery = f"""SELECT aid, name, nationality
+                    FROM artists LEFT OUTER JOIN perform USING(aid) LEFT OUTER JOIN songs USING(sid) 
+                    WHERE title LIKE '%{keywords[0]}%' 
+                    GROUP BY aid
+                    HAVING COUNT(*) > 0\n"""
+        
+    for i in range(1, len(keywords)):
+        nameQuery += "UNION ALL\n"
+        nameQuery += f"""SELECT aid, name, nationality FROM artists WHERE name LIKE '%{keywords[i]}%'\n"""
+
+        songQuery += "UNION ALL\n"
+        songQuery += f"""SELECT aid, name, nationality
+                        FROM artists LEFT OUTER JOIN perform USING(aid) LEFT OUTER JOIN songs USING(sid) 
+                        WHERE title LIKE '%{keywords[i]}%' 
+                        GROUP BY aid
+                        HAVING COUNT(*) > 0\n"""
+
+    cursor.execute(
+        f"""WITH artistSongCnt(aid, cnt) AS 
+            (SELECT aid, COUNT(*)
+             FROM perform
+             GROUP BY aid
+            )
+            SELECT q.aid, name, nationality, artistSongCnt.cnt AS songcount
+            FROM (
+                SELECT aid, name, nationality, count(*) AS matches
+                FROM ({nameQuery})
+                GROUP BY aid
+                UNION ALL
+                SELECT aid, name, nationality, count(*) AS matches
+                FROM ({songQuery})
+                GROUP BY aid
+                ) AS q, artistSongCnt
+            WHERE q.aid=artistSongCnt.aid
+            GROUP BY q.aid
+            ORDER BY SUM(matches) DESC;""")
+    
+    return cursor.fetchall()
+
+
+def getArtistsSongs(aid):
+    cursor.execute(f"""SELECT sid, title, duration FROM perform LEFT OUTER JOIN songs USING(sid) WHERE aid="{aid}";""")
+    return cursor.fetchall()
+
+
+def getSongsInPlaylist(pid):
+    cursor.execute(f"""SELECT sid, title, duration FROM plinclude LEFT OUTER JOIN songs USING(sid) WHERE pid={pid};""")
+    return cursor.fetchall()
+
+
 ### INITAL FUNCTIONS ###
 
 
