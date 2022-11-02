@@ -77,6 +77,7 @@ def menu(userId):
                     if selection <= len(songs):
                         songActions(songsDict[selection])
 
+        # search for artists
         elif userInput == 3:
             line = input("Enter keywords for an artist: ")
             keywords = line.split()
@@ -132,7 +133,8 @@ def menu(userId):
             print("Invalid input. Refer to menu")
 
     
-
+# function that performs all necessary actions for a song.
+# song input is a list with entries [sid, title, duration]
 def songActions(song):
     print(song[1] + " was selected")
 
@@ -144,8 +146,11 @@ def songActions(song):
             print("Invalid selection")
             selection = int(input("Select an option: "))
 
+        # listen to song
         if selection == 1:
             dbFunctions.listenToSong(uid, song)
+        
+        # see more info about song
         elif selection == 2:
             print("id = " + str(song[0]))
             print("title = " + song[1])
@@ -156,9 +161,12 @@ def songActions(song):
             
 
             playlists = dbFunctions.getPlaylistsFromSong(song[0])
-            if playlists != None:
-                print("playlists that song is in: " + ', '.join(playlists))
+            if playlists == None or len(playlists) < 1:
+                print(song[1] + " is not present in any playlists")
+            else:
+                print("playlists that " + song[1] + " is in: " + ', '.join(playlists))
 
+        # add song to playlist
         elif selection == 3:
             printAddToPlaylistMenu()
 
@@ -205,6 +213,7 @@ def songActions(song):
             return
 
 
+# prints a list of all song actions
 def printSongActionMenu():
     print("""
 1 - Listen to song
@@ -214,6 +223,7 @@ def printSongActionMenu():
     """)
 
 
+# prints a list of options for a playlist
 def printAddToPlaylistMenu():
     print("""
 1 - Add to existing playlist
