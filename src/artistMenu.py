@@ -79,7 +79,7 @@ def addSong(songName, songDuration):
 
 
 def getTopPlaylists():
-    rows = dbFunctions.getTopArtists(aid)
+    rows = dbFunctions.getTopPlaylists(aid)
     if (rows != None):
         print("Top Playlists:")
         i = 1

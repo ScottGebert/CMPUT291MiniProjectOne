@@ -20,7 +20,7 @@ def printMenu():
 3 - Search for artists
 4 - End a session
 5 - Logout
-
+6 - Exit
 Enter a choice and press enter:""")
 
     return
@@ -127,6 +127,12 @@ def menu():
         elif userInput == 4:
             dbFunctions.endSession(uid)
         elif userInput == 5:
+            # TODO implment logout
+            if dbFunctions.getActiveSession(uid) != None:
+                dbFunctions.endSession(uid)
+            return
+        elif userInput == 6:
+            # TODO implment exit
             if dbFunctions.getActiveSession(uid) != None:
                 dbFunctions.endSession(uid)
             return
