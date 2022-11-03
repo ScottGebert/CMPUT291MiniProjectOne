@@ -9,8 +9,9 @@ import MiniProjectOne
 def getLoginInfo():
     while True:
         id = MiniProjectOne.getInput('ID: ', 'Must input an ID')
-        password = MiniProjectOne.getInput("Password: ", "Must Input a password")  # getPassword() returns err currently
-       
+        # getPassword() returns err currently
+        password = MiniProjectOne.getInput(
+            "Password: ", "Must Input a password")
 
         if (dbFunctions.idInBoth(id)):
             userOrArtist = ""
@@ -34,7 +35,6 @@ def getLoginInfo():
             print(result, id)
             if (result != None):
                 return result, id
-                break
 
             if (result == None):
                 register = None
@@ -46,21 +46,6 @@ def getLoginInfo():
                         return "user", uid
                     elif (register.lower() == "n"):
                         break
-
-
-def displayWelcome():
-    title = '''
-    ************************************
-    *                                  *
-    *            Welcome!              *
-    *                                  *
-    ************************************
-    '''
-
-    print(title)
-
-
-
 
 
 def registerUser():

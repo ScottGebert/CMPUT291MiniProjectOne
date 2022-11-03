@@ -6,15 +6,6 @@ connection = None
 cursor = None
 
 
-def connect(path):
-    global connection, cursor
-    connection = sqlite3.connect(path)
-    cursor = connection.cursor()
-    cursor.execute(' PRAGMA foreign_keys=ON; ')
-    connection.commit()
-    return cursor
-
-
 ### LOGIN FUNCTIONS ###
 # Returns the userType if login is sucsessful otherwise returns None
 def attemptLoginBothTables(id, pwd):
@@ -27,7 +18,7 @@ def attemptLoginBothTables(id, pwd):
     return userType
 
 
-# Check is id is in both users and artists
+# Check if passed in id is in both users and artists
 def idInBoth(id):
     cursor.execute(f"""SELECT uid as id FROM users WHERE uid='{id}'
                         UNION ALL
@@ -95,7 +86,7 @@ def addSong(aid, songName, songDuration):
     return
 
 
-def getTopArtists(aid):
+def getTopPlaylists(aid):
     cursor.execute(f"""SELECT  title, Count(*) as sCount FROM plinclude INNER JOIN perform on perform.sid = plinclude.sid 
     INNER JOIN playlists on playlists.pid = plinclude.pid
     WHERE perform.aid='{aid}'
@@ -121,8 +112,6 @@ def getTopUsers(aid):
 
 ### ALL FUNCTIONS ###
 # Only works if the PK is an int
-
-
 def getNextUnusedId(tableName, idColumnName):
     cursor.execute(
         f"""SELECT MAX({idColumnName}) + 1 FROM {tableName};""")
@@ -130,15 +119,17 @@ def getNextUnusedId(tableName, idColumnName):
     return cursor.fetchone()[0]
 
 
+## USERE FUNCTIONS ##
 def getActiveSession(uid):
-    cursor.execute(f"""SELECT sno FROM sessions WHERE uid="{uid}" AND sessions.end IS NULL;""")
+    cursor.execute(
+        f"""SELECT sno FROM sessions WHERE uid="{uid}" AND sessions.end IS NULL;""")
     row = cursor.fetchone()
     if row != None:
         return row[0]
 
     return row
 
-
+# starts a session for a user if one is not already started
 def startSession(uid):
     # see if there is an active session
     sno = getActiveSession(uid)
@@ -147,30 +138,32 @@ def startSession(uid):
         sno = getNextUnusedId('sessions', 'sno')
         if sno == None:
             sno = 1
-        
+
         cursor.execute(
-        f"""INSERT into sessions VALUES ("{uid}", "{sno}", "{datetime.now().strftime('%Y-%m-%d')}", NULL);""")
-    
-        connection.commit()    
+            f"""INSERT into sessions VALUES ("{uid}", "{sno}", "{datetime.now().strftime('%Y-%m-%d')}", NULL);""")
+
+        connection.commit()
 
     return sno
 
-
+# ends a session for a user
 def endSession(uid):
     cursor.execute(
         f"""UPDATE sessions SET end="{datetime.now().strftime('%Y-%m-%d')}" WHERE uid="{uid}" AND sessions.end IS NULL AND start IS NOT NULL;""")
-    
+
     connection.commit()
 
     return
 
-
+# searches for songs & playlists given a list of keywords
+# keywords are cross referenced with song titles and playlists they exist in
+# results are ordered by number of matches
 def searchSongsAndPlaylists(keywords):
     songQuery = f"""SELECT sid, title, duration FROM songs WHERE title LIKE '%{keywords[0]}%'\n"""
     playlistQuery = f"""SELECT pid AS id, pl.title, ifnull(cnt, 0) AS duration
 		FROM (SELECT pid, playlists.title, SUM(duration) AS cnt FROM playlists LEFT OUTER JOIN plinclude USING(pid) LEFT OUTER JOIN songs USING(sid) GROUP BY pid) AS pl
 		WHERE pl.title LIKE '%{keywords[0]}%'\n"""
-        
+
     for i in range(1, len(keywords)):
         songQuery += "UNION ALL\n"
         songQuery += f"""SELECT sid, title, duration FROM songs WHERE title LIKE '%{keywords[i]}%'\n"""
@@ -192,78 +185,89 @@ def searchSongsAndPlaylists(keywords):
                 GROUP BY id
                 )
             ORDER BY matches DESC;""")
-    
+
     return cursor.fetchall()
 
-
+# adds an entry to listen table if user has not listened to this song during this session
+# o.w. the cnt field is incremented
 def listenToSong(uid, song):
     # if there is an active session, this function won't start a new one
     sno = startSession(uid)
 
-    cursor.execute(f"""SELECT * FROM listen WHERE uid="{uid}" AND sno={sno} AND sid={song[0]};""")
+    cursor.execute(
+        f"""SELECT * FROM listen WHERE uid="{uid}" AND sno={sno} AND sid={song[0]};""")
     row = cursor.fetchone()
     if row == None:
-        cursor.execute(f"""INSERT INTO listen VALUES ("{uid}", "{sno}", {song[0]}, 1);""")
+        cursor.execute(
+            f"""INSERT INTO listen VALUES ("{uid}", "{sno}", {song[0]}, 1);""")
     else:
         cursor.execute(
-        f"""UPDATE listen SET cnt=cnt + 1 WHERE uid="{uid}" AND sno="{sno}" AND sid={song[0]};""")
-    
+            f"""UPDATE listen SET cnt=cnt + 1 WHERE uid="{uid}" AND sno="{sno}" AND sid={song[0]};""")
+
     connection.commit()
 
-
+# gets all artists that have performed a song
 def getArtistsFromSong(sid):
-    cursor.execute(f"""SELECT name FROM perform LEFT OUTER JOIN artists USING(aid) WHERE sid={sid};""")
+    cursor.execute(
+        f"""SELECT name FROM perform LEFT OUTER JOIN artists USING(aid) WHERE sid={sid};""")
     artists = [i[0] for i in cursor.fetchall()]
     return artists
 
-
+# returns all playlists that a given song exists in
 def getPlaylistsFromSong(sid):
-    cursor.execute(f"""SELECT title FROM plinclude LEFT OUTER JOIN playlists USING(pid) WHERE sid={sid};""")
+    cursor.execute(
+        f"""SELECT title FROM plinclude LEFT OUTER JOIN playlists USING(pid) WHERE sid={sid};""")
     playlists = [i[0] for i in cursor.fetchall()]
     return playlists
 
-
+# returns all playlists owner by a user with given uid
 def getPlaylistsFromUid(uid):
     cursor.execute(f"""SELECT pid, title FROM playlists WHERE uid="{uid}";""")
     return cursor.fetchall()
 
-
+# creates a new playlist for a user with a given title
 def createNewPlaylist(uid, title):
     pid = getNextUnusedId('playlists', 'pid')
     if pid == None:
         pid = 1
-    
-    cursor.execute(f"""INSERT INTO playlists VALUES ({pid}, "{title}", "{uid}");""")
+
+    cursor.execute(
+        f"""INSERT INTO playlists VALUES ({pid}, "{title}", "{uid}");""")
     connection.commit()
-    
+
     return pid
 
-
+# adds a song to a playlist. Sort order is assigned to the bottom of the playlist
 def addSongToPlaylist(sid, pid):
     if songExistsInPlaylist(sid, pid):
         print("Song already exists in playlist")
         return
-    
+
     # get next sort order value
-    cursor.execute(f"""SELECT MAX(sorder) FROM plinclude WHERE pid={pid} AND sid="{sid}";""")
+    cursor.execute(
+        f"""SELECT MAX(sorder) FROM plinclude WHERE pid={pid} AND sid="{sid}";""")
     sorder = cursor.fetchone()[0]
     if sorder == None:
         sorder = 1
     else:
         sorder = sorder + 1
-    
-    cursor.execute(f"""INSERT INTO plinclude VALUES ({pid}, "{sid}", {sorder});""")
+
+    cursor.execute(
+        f"""INSERT INTO plinclude VALUES ({pid}, "{sid}", {sorder});""")
     connection.commit()
 
     return
 
-
+# returns true if a song exists in a playlist
 def songExistsInPlaylist(sid, pid):
-    cursor.execute(f"""SELECT COUNT(*) FROM plinclude WHERE pid={pid} AND sid={sid}""")
+    cursor.execute(
+        f"""SELECT COUNT(*) FROM plinclude WHERE pid={pid} AND sid={sid}""")
     count = cursor.fetchone()
     return (True if count[0] > 0 else False)
 
-
+# searches for artists given a list of keywords
+# keywords are cross referenced with artist names and song titles
+# results are ordered by number of matches
 def searchArtists(keywords):
     nameQuery = f"""SELECT aid, name, nationality FROM artists WHERE name LIKE '%{keywords[0]}%'\n"""
     songQuery = f"""SELECT aid, name, nationality
@@ -271,7 +275,7 @@ def searchArtists(keywords):
                     WHERE title LIKE '%{keywords[0]}%' 
                     GROUP BY aid
                     HAVING COUNT(*) > 0\n"""
-        
+
     for i in range(1, len(keywords)):
         nameQuery += "UNION ALL\n"
         nameQuery += f"""SELECT aid, name, nationality FROM artists WHERE name LIKE '%{keywords[i]}%'\n"""
@@ -302,22 +306,30 @@ def searchArtists(keywords):
             WHERE q.aid=artistSongCnt.aid
             GROUP BY q.aid
             ORDER BY SUM(matches) DESC;""")
-    
+
     return cursor.fetchall()
 
-
+# gets all songs performed by an artist given their aid
 def getArtistsSongs(aid):
-    cursor.execute(f"""SELECT sid, title, duration FROM perform LEFT OUTER JOIN songs USING(sid) WHERE aid="{aid}";""")
+    cursor.execute(
+        f"""SELECT sid, title, duration FROM perform LEFT OUTER JOIN songs USING(sid) WHERE aid="{aid}";""")
     return cursor.fetchall()
 
-
+# gets all songs that exist in a playlist given a pid
 def getSongsInPlaylist(pid):
-    cursor.execute(f"""SELECT sid, title, duration FROM plinclude LEFT OUTER JOIN songs USING(sid) WHERE pid={pid};""")
+    cursor.execute(
+        f"""SELECT sid, title, duration FROM plinclude LEFT OUTER JOIN songs USING(sid) WHERE pid={pid};""")
     return cursor.fetchall()
 
 
 ### INITAL FUNCTIONS ###
-
+def connect(path):
+    global connection, cursor
+    connection = sqlite3.connect(path)
+    cursor = connection.cursor()
+    cursor.execute(' PRAGMA foreign_keys=ON; ')
+    connection.commit()
+    return cursor
 
 def createTables():
     global connection, cursor
