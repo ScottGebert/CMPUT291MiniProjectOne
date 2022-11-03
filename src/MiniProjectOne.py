@@ -4,12 +4,20 @@ import dbFunctions
 import login
 import artistMenu
 import userMenu
+import sys
 
 path = "miniProject.db"
 
 
-def main():
-    # Initalizes Connection to the DB - use dbFunctions.Cursor for executing queries
+def main(args):
+    # get the path from the command line argument
+    if len(args) < 2:
+        print("Not enough command line arguments")
+        return
+    
+    path = args[1]
+
+    # Initializes Connection to the DB - use dbFunctions.Cursor for executing queries
     dbFunctions.connect(path)
 
     # dbFunctions.createTables()
@@ -39,4 +47,4 @@ def getInput(message, errMessage):
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv)
