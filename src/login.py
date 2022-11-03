@@ -32,7 +32,6 @@ def getLoginInfo():
                         break
         else:
             result = dbFunctions.attemptLoginBothTables(id, password)
-            print(result, id)
             if (result != None):
                 return result, id
 
