@@ -26,13 +26,12 @@ def menu(userId):
         userInput = int(input())
 
         # start session
-        if userInput == 1:
-            print("SessionStart")            
+        if userInput == 1:       
             dbFunctions.startSession(uid)
 
         # Search for song/playlist
         elif userInput == 2:
-            line = input("Enter keywords for a song or playlist: ")
+            line = MiniProjectOne.getInput("Enter keywords for a song or playlist: ", "You must enter at least 1 keyword")
             keywords = line.split()
             matchingValues = dbFunctions.searchSongsAndPlaylists(keywords)
             if matchingValues == None or len(matchingValues) < 1:
@@ -79,7 +78,7 @@ def menu(userId):
 
         # search for artists
         elif userInput == 3:
-            line = input("Enter keywords for an artist: ")
+            line = MiniProjectOne.getInput("Enter keywords for an artist: ", "You must enter at least 1 keyword")
             keywords = line.split()
             artists = dbFunctions.searchArtists(keywords)
             if artists == None or len(artists) < 1:
@@ -157,8 +156,11 @@ def songActions(song):
             print("duration = " + str(song[2]))
 
             artists = dbFunctions.getArtistsFromSong(song[0])
-            print("artists performed by: " + ', '.join(artists))
-            
+            if artists == None or len(artists) < 1:
+                print(song[1] + " is not performed by any artists")
+            else :
+                print("artists performed by: " + ', '.join(artists))
+                   
 
             playlists = dbFunctions.getPlaylistsFromSong(song[0])
             if playlists == None or len(playlists) < 1:
