@@ -143,6 +143,7 @@ def startSession(uid):
             f"""INSERT into sessions VALUES ("{uid}", "{sno}", "{datetime.now().strftime('%Y-%m-%d')}", NULL);""")
 
         connection.commit()
+        print("Session started")
 
     return sno
 
