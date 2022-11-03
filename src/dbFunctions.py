@@ -20,9 +20,9 @@ def attemptLoginBothTables(id, pwd):
 
 # Check if passed in id is in both users and artists
 def idInBoth(id):
-    cursor.execute(f"""SELECT uid as id FROM users WHERE uid='{id}'
+    cursor.execute(f"""SELECT uid as id FROM users WHERE LOWER(uid)='{id.lower()}'
                         UNION ALL
-                        SELECT aid as id FROM artists WHERE aid='{id}';""")
+                        SELECT aid as id FROM artists WHERE LOWER(aid)='{id.lower()}';""")
 
     rows = cursor.fetchall()
     return True if len(rows) > 1 else False
@@ -30,7 +30,7 @@ def idInBoth(id):
 
 # Returns True if login is sucsessful
 def loginUser(id, pwd):
-    cursor.execute(f"""SELECT * FROM users WHERE uid='{id}' and pwd='{pwd}'""")
+    cursor.execute(f"""SELECT * FROM users WHERE LOWER(uid)='{id.lower()}' and pwd='{pwd}'""")
     row = cursor.fetchone()
     return (False if row == None else True)
 
@@ -38,14 +38,14 @@ def loginUser(id, pwd):
 # Returns True if login is sucsessful
 def loginArtist(id, pwd):
     cursor.execute(
-        f"""SELECT * FROM artists WHERE aid='{id}' and pwd='{pwd}'""")
+        f"""SELECT * FROM artists WHERE LOWER(aid)='{id.lower()}' and pwd='{pwd}'""")
     row = cursor.fetchone()
     return (False if row == None else True)
 
 
 # User ID can match aid so only check Users
 def checkUserId(id):
-    cursor.execute(f"""SELECT * FROM users WHERE uid='{id}'""")
+    cursor.execute(f"""SELECT * FROM users WHERE LOWER(uid)='{id.lower()}'""")
     row = cursor.fetchone()
     return (False if row == None else True)
 
@@ -63,7 +63,7 @@ def registerUser(id, name, password):
 def songExists(aid, songName, songDuration):
     cursor.execute(
         f"""SELECT count(*) as count FROM songs INNER JOIN perform on songs.sid = perform.sid
-        where perform.aid='{aid}' and Lower(songs.title)='{songName}' AND songs.duration={songDuration};""")
+        where LOWER(perform.aid)='{aid.lower()}' and Lower(songs.title)='{songName.lower()}' AND songs.duration={songDuration};""")
 
     count = cursor.fetchone()
 
@@ -89,7 +89,7 @@ def addSong(aid, songName, songDuration):
 def getTopPlaylists(aid):
     cursor.execute(f"""SELECT  title, Count(*) as sCount FROM plinclude INNER JOIN perform on perform.sid = plinclude.sid 
     INNER JOIN playlists on playlists.pid = plinclude.pid
-    WHERE perform.aid='{aid}'
+    WHERE LOWER(perform.aid)='{aid.lower()}'
     GROUP BY plinclude.pid
     ORDER BY sCount DESC
     LIMIT 3;
@@ -102,7 +102,7 @@ def getTopUsers(aid):
     INNER JOIN perform on listen.sid = perform.sid
     INNER JOIN songs on songs.sid = perform.sid
     INNER JOIN users on listen.uid = users.uid
-    WHERE perform.aid='{aid}'
+    WHERE LOWER(perform.aid)='{aid.lower()}'
     GROUP BY listen.uid
     ORDER BY lTime  DESC
     LIMIT 3;
